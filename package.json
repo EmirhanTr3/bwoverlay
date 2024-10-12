@@ -1,0 +1,16 @@
+{
+  "name": "bwoverlay",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node ."
+  },
+  "author": "EmirhanTr3",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "table": "^6.8.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
