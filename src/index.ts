@@ -64,7 +64,7 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
         })).json()).player
 
         const name: string = hypixelData.displayname
-        const rank: string = hypixelData.monthlyPackageRank ? "MVP++" : hypixelData.newPackageRank ? hypixelData.newPackageRank.replace("_PLUS", "+") : "DEFAULT"
+        const rank: string = hypixelData.monthlyPackageRank == "SUPERSTAR" ? "MVP++" : hypixelData.newPackageRank ? hypixelData.newPackageRank.replace("_PLUS", "+") : "DEFAULT"
         const nwExp: number = hypixelData.networkExp
         const nwLevel: number = nwExp < 0 ? 1 : Math.floor(1 + -3.5 + Math.sqrt((-3.5 * -3.5) + (2 / 2_500) * nwExp))
         const level: number = hypixelData.achievements.bedwars_level
