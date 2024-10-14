@@ -1,5 +1,6 @@
 {
     "logFilePath": "C:/Users/User/AppData/Roaming/.minecraft/logs/latest.log",
     "hypixelApiKey": "ENTER YOUR HYPIXEL API KEY HERE",
-    "debug": false
+    "debug": false,
+    "quitLevel": 130
 }

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { logFilePath, hypixelApiKey, debug as debugVal } from "./config.json"
+import { logFilePath, hypixelApiKey, debug as debugVal, quitLevel } from "./config.json"
 import { table } from "table";
 
 if (!fs.existsSync(logFilePath)) {
@@ -32,13 +32,23 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     const players = line.replace(/\[.*:.*:.*\] \[Render thread\/INFO\]: \[CHAT\] ONLINE: /, "").replace("\r", "").split(", ")
     debug(players)
 
-    const mojangPlayers: {id: string, name: string}[] = (await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
-        method: "POST",
-        body: JSON.stringify(players),
-        headers: {
-            "content-type": "application/json"
-        }
-    })).json())
+    const playerChunks: string[][] = []
+    for (let i = 0; i < players.length; i += 10) {
+        const chunk = players.slice(i, i + 10)
+        playerChunks.push(chunk)
+    }
+
+    const mojangPlayers: {id: string, name: string}[] = []
+    
+    for (const chunk of playerChunks) {
+        mojangPlayers.push(await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
+            method: "POST",
+            body: JSON.stringify(chunk),
+            headers: {
+                "content-type": "application/json"
+            }
+        })).json())
+    }
 
     debug(mojangPlayers)
 
@@ -66,7 +76,7 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
         const bedBreak: number = hypixelData.stats.Bedwars.beds_broken_bedwars
 
         data.push([
-            rank + " " + name,
+            level >= quitLevel ? "\x1b[31m"+ rank + " " + name +"\x1b[0m" : rank + " " + name,
             nwLevel,
             level,
             winstreak,
