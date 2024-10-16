@@ -29,7 +29,7 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
 
     if (!line.includes("[CHAT] ONLINE:")) return;
 
-    const players = line.replace(/\[.*:.*:.*\] \[Render thread\/INFO\]: \[CHAT\] ONLINE: /, "").replace("\r", "").split(", ")
+    const players = line.replace(/\[.*:.*:.*\] \[.* thread\/INFO\]: \[CHAT\] ONLINE: /, "").replace("\r", "").split(", ")
     debug(players)
 
     const playerChunks: string[][] = []
@@ -41,17 +41,13 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     const mojangPlayers: {id: string, name: string}[] = []
     
     for (const chunk of playerChunks) {
-        const mojangResponse = await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
+        mojangPlayers.push(...await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
             method: "POST",
             body: JSON.stringify(chunk),
             headers: {
                 "content-type": "application/json"
             }
-        })).json()
-
-        for (const player of mojangResponse) {
-            mojangPlayers.push(player)
-        }
+        })).json())
     }
 
     debug(mojangPlayers)
