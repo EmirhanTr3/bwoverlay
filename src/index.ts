@@ -41,13 +41,17 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     const mojangPlayers: {id: string, name: string}[] = []
     
     for (const chunk of playerChunks) {
-        mojangPlayers.push(...await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
+        const mojangResponse = await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
             method: "POST",
             body: JSON.stringify(chunk),
             headers: {
                 "content-type": "application/json"
             }
-        })).json())
+        })).json()
+
+        for (const player of mojangResponse) {
+            mojangPlayers.push(player)
+        }
     }
 
     debug(mojangPlayers)
