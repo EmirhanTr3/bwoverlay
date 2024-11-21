@@ -93,7 +93,7 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     for (const player of players) {
         if (!mojangPlayerNames.includes(player)) {
             data.push([
-                "\x1b[33m " + player,
+                "\x1b[33m[NICKED] " + player,
                 null,
                 null,
                 null,
