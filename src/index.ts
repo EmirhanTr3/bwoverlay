@@ -87,6 +87,24 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
             bedBreak
         ])
     }
+
+    const mojangPlayerNames: string[] = mojangPlayers.map(p => p.name)
+
+    for (const player of players) {
+        if (!mojangPlayerNames.includes(player)) {
+            data.push([
+                "\x1b[33m " + player,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ])
+        }
+    }
     
     console.log(table(data))
 })
