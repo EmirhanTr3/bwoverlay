@@ -41,14 +41,35 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     const mojangPlayers: {id: string, name: string}[] = []
     
     for (const chunk of playerChunks) {
-        mojangPlayers.push(...await (await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
+        const response = await fetch("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname", {
             method: "POST",
             body: JSON.stringify(chunk),
             headers: {
                 "content-type": "application/json"
             }
-        })).json())
+        })
+
+        if (!response.ok) {
+            console.error(`There was an error returned from Mojang API. (${response.status} ${response.statusText})`)
+            console.log("Retrying using fallback api (api.minetools.eu)...")
+
+            for (const player of chunk) {
+                const json = await (await fetch("https://api.minetools.eu/uuid/" + player)).json()
+
+                if (json.id) {
+                    mojangPlayers.push({
+                        id: json.id,
+                        name: json.name
+                    })
+                }
+            }
+
+            continue
+        }
+
+        mojangPlayers.push(...await response.json())
     }
+    
 
     debug(mojangPlayers)
 
@@ -57,17 +78,25 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     ]
 
     for (const player of mojangPlayers) {
-        const hypixelData = (await (await fetch("https://api.hypixel.net/v2/player?uuid=" + player.id, {
+        const response = await fetch("https://api.hypixel.net/v2/player?uuid=" + player.id, {
             headers: {
                 "API-Key": hypixelApiKey
             }
-        })).json()).player
+        })
+
+        const body = await response.json()
+        const hypixelData = body.player
+
+        if (!hypixelData) {
+            console.error(`Hypixel data for ${player.name} (${player.id}) is null.`)
+            continue
+        }
 
         const name: string = hypixelData.displayname
         const rank: string = hypixelData.monthlyPackageRank == "SUPERSTAR" ? "MVP++" : hypixelData.newPackageRank ? hypixelData.newPackageRank.replace("_PLUS", "+") : "DEFAULT"
         const nwExp: number = hypixelData.networkExp
         const nwLevel: number = nwExp < 0 ? 1 : Math.floor(1 + -3.5 + Math.sqrt((-3.5 * -3.5) + (2 / 2_500) * nwExp))
-        const level: number = hypixelData.achievements.bedwars_level
+        const level: number = hypixelData.achievements?.bedwars_level
         const winstreak: number = hypixelData.stats.Bedwars.winstreak
         const fkdr: number = hypixelData.stats.Bedwars.final_kills_bedwars / hypixelData.stats.Bedwars.final_deaths_bedwars
         const wlr: number = hypixelData.stats.Bedwars.wins_bedwars / hypixelData.stats.Bedwars.losses_bedwars
@@ -93,7 +122,7 @@ fs.watchFile(logFilePath, { interval: 1 }, async (curr, prev) => {
     for (const player of players) {
         if (!mojangPlayerNames.includes(player)) {
             data.push([
-                "\x1b[33m[NICKED] " + player,
+                "\x1b[33mNICKED " + player + "\x1b[0m",
                 null,
                 null,
                 null,
